@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Jasminbell</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+<table class="tb_col" border="1">
+  <tr>
+    <th rowspan="2">No</th>
+    <th rowspan="2">공급처</th>
+    <th rowspan="2">상품코드</th>
+    <th rowspan="2">상품명</th>
+    <th rowspan="2">공급처 옵션</th>
+    <th colspan="2">현재 잔미송</th>
+    <th rowspan="2">최신화</th>
+    <th rowspan="2">수정</th>
+  </tr>
+  <tr>
+    <th>수량</th>
+    <th>건수</th>
+  </tr>
+  <tr th:each="product : ${productList}">
+    <td th:text="${product.no}"></td>
+    <td th:text="${product.supplier}"></td>
+    <td th:text="${product.code}"></td>
+    <td th:text="${product.name}"></td>
+    <td th:text="${product.supplierOption}"></td>
+    <td th:text="${product.reservedCount}"></td>
+    <td th:text="${product.reservedCase}"></td>
+    <td th:text="${product.isUpdate}"></td>
+    <td>!</td>
+    <td><a th:href="@{'/detail?code=' + ${product.code}}">수정</a></td>
+  </tr>
+</table>
+</body>
+</html>

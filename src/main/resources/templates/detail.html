@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Jasminbell</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+<h1>최신화 상황</h1>
+최신화 :
+업로드 입고 대기 :
+업로드 금일입고 :
+<table class="tb_col" border="1">
+    <tr>
+        <th>No</th>
+        <th>요청일시</th>
+        <th>요청수량</th>
+        <th>메모</th>
+        <th>입고상태</th>
+        <th>입고수량</th>
+        <th colspan="2">작업</th>
+    </tr>
+    <tr th:each="productLog : ${productLogList}">
+        <td th:text="${productLog.no}"></td>
+        <td th:text="${productLog.requestDate}"></td>
+        <td th:text="${productLog.requestCount}"></td>
+        <td th:text="${productLog.memo}"></td>
+<!--        <td th:text="${productLog.stockedStatus == '}"></td>-->
+        <td>
+            <span th:if="${productLog.stockedStatus == 'INITIAL'}">대기</span>
+            <span th:if="${productLog.stockedStatus == 'A_PART_OF_STOCKED'}">부분입고</span>
+            <span th:if="${productLog.stockedStatus == 'COMPLETE'}">완료</span>
+            <span th:if="${productLog.stockedStatus != 'INITIAL' && productLog.stockedStatus != 'A_PART_OF_STOCKED' && productLog.stockedStatus != 'COMPLETE'}">기타</span>
+        </td>
+        <td th:text="${productLog.stockedCount}"></td>
+<!--        <td><a th:href="@{'/complete?code=' + ${product.code}}">완료처리</a></td>-->
+<!--        <td><a th:href="@{'/delete?code=' + ${product.code}}">삭제</a></td>-->
+        <td><button>완료처리</button></td>
+        <td><button>삭제</button></td>
+    </tr>
+</table>
+</body>
+</html>
