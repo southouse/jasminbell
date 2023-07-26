@@ -24,5 +24,6 @@ public class Result {
 
     private boolean isSuccess = false;
     private String message;
+    private Object content;
 
 }

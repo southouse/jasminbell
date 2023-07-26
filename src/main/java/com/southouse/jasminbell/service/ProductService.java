@@ -28,5 +28,16 @@ public class ProductService {
     public List<Product> getProducts() {
         return productRepository.findAll();
     }
+    public Product getProduct(String code) {
+        return productRepository.findByCode(code);
+    }
+
+    public void save(Product product) {
+        productRepository.save(product);
+    }
+
+    public void save(List<Product> products) {
+        productRepository.saveAll(products);
+    }
 
 }

@@ -4,39 +4,230 @@
     <title>Jasminbell</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
+<style>
+  table {
+    border-collapse: collapse;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    border-style: hidden;
+    margin: 25px 0;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    min-width: 1391px;
+  }
+
+  th,
+  td {
+      padding: 12px 15px;
+  }
+
+<!--  tbody tr:hover {-->
+<!--    font-weight: 600;-->
+<!--    color: #3EB489;-->
+<!--    cursor: pointer;-->
+<!--  }-->
+
+  thead tr {
+    background-color: #3EB489;
+    color: #ffffff;
+    text-align: left;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+
+  tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+  }
+
+  tbody tr:last-of-type {
+    border-bottom: 2px solid #009879;
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- JavaScript -->
+<script th:inline="javascript">
+    let url = "";
+    let type = "GET";
+    let data = {};
+
+    function updateLog(no, method) {
+        data["no"] = no;
+
+        switch (method) {
+            case 'update':
+                url = '/log/update';
+                type = "PUT";
+                data["memo"] = document.getElementById('memo' + no).value;
+                data["stockedCount"] = document.getElementById('stockedCount' + no).value;
+                break;
+            case 'complete':
+                url = '/log/complete';
+                type = "PUT";
+                break;
+            case 'delete':
+                url = '/log/delete';
+                type = "DELETE";
+                break;
+            default:
+                alert("알 수 없는 에러");
+                window.location.reload();
+                break;
+        }
+
+        $.ajax({
+            url: url,
+            type: type,
+            data: data,
+            success: function (response) {
+                console.log(response);
+
+                if (response.success === true) {
+                    alert("완료");
+                    window.location.reload();
+                } else {
+                    alert(response.message);
+                    window.location.reload();
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("억까");
+                window.location.reload();
+            }
+        });
+    }
+
+    function deleteLog(no) {
+        $.ajax({
+            url: '/log/delete',
+            type: 'DELETE',
+            data: {
+                no: no
+            },
+            success: function (response) {
+                console.log(response);
+
+                if (response.success === true) {
+                    alert("완료");
+                    window.location.reload();
+                } else {
+                    alert(response.message);
+                    window.location.reload();
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("억까");
+                window.location.reload();
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        // Hide the sections initially based on the default selected value
+        showHideFormSections();
+
+        // Attach event listener to the select box
+        $('#stockedStatusSelect').on('change', function() {
+            showHideFormSections();
+        });
+    });
+
+function showHideFormSections() {
+    var selectedValue = $('#stockedStatusSelect').val();
+
+    // Hide all form sections
+    $('#initialForm').hide();
+    $('#partOfStockedForm').hide();
+
+    // Show the relevant form section based on the selected value
+    if (selectedValue === 'INITIAL') {
+        $('#initialForm').show();
+    } else if (selectedValue === 'A_PART_OF_STOCKED') {
+        $('#partOfStockedForm').show();
+    }
+}
+</script>
+
 <body>
-<h1>최신화 상황</h1>
-최신화 :
-업로드 입고 대기 :
-업로드 금일입고 :
+<header><a href="./">HOME</a></br></header>
+<h1><span th:text="${product.code}"></span> | <span th:text="${product.name}"></span></h1>
+<hr style="border: 2px solid #000">
+최신화 : <span th:text="${product.isUpdate ? 'O' : 'X'}">O</span><br/>
+업로드 입고 대기 : <span th:text="${product.stockedWaiting}"></span><br/>
+업로드 금일입고 : <span th:text="${product.stockedToday}"></span><br/><br/>
+<hr>
+<!--    <label for="stockedStatusSelect">타입:</label>-->
+<!--    <select name="stockedStatus" id="stockedStatusSelect">-->
+<!--        <option th:each="status : ${T(com.southouse.jasminbell.entity.StockedStatus).values()}"-->
+<!--                th:unless="${status == T(com.southouse.jasminbell.entity.StockedStatus).COMPLETE}"-->
+<!--                th:value="${status}"-->
+<!--                th:text="${status.getDisplayName()}">-->
+<!--        </option>-->
+<!--    </select>-->
+
+<!--    <div id="initialForm">-->
+        <form th:action="@{/log/create}" method="post" th:object="${createProductLog}">
+            <input type="hidden" id="productCode" name="productCode" th:value="${product.code}" required>
+            <label for="date">날짜:</label>
+            <input type="date" id="date" name="date" required>
+
+            <label for="memo">메모:</label>
+            <input type="text" id="memo" name="memo" th:field="*{memo}" required>
+
+            <label for="requestCount">수량:</label>
+            <input type="number" id="requestCount" th:field="*{requestCount}" name="requestCount" required>
+<!--    </div>-->
+
+<!--    <div id="partOfStockedForm">-->
+<!--        <form th:action="@{/log/update}" method="post" th:object="${createProductLog}">-->
+<!--            <input type="hidden" id="productCode" name="productCode" th:value="${product.code}" required>-->
+<!--            <label for="date">날짜:</label>-->
+<!--            <input type="date" id="date" name="date" required>-->
+
+<!--            <label for="memo">메모:</label>-->
+<!--            <input type="text" id="memo" name="memo" th:field="*{memo}" required>-->
+
+<!--            <label for="requestCount">수량:</label>-->
+<!--            <input type="number" id="requestCount" th:field="*{requestCount}" name="requestCount" required>-->
+<!--        </form>-->
+<!--    </div>-->
+
+    <button type="submit">생성</button>
+</form><br/><br/>
+<hr>
 <table class="tb_col" border="1">
-    <tr>
-        <th>No</th>
-        <th>요청일시</th>
-        <th>요청수량</th>
-        <th>메모</th>
-        <th>입고상태</th>
-        <th>입고수량</th>
-        <th colspan="2">작업</th>
-    </tr>
-    <tr th:each="productLog : ${productLogList}">
+    <thead>
+        <tr>
+            <th>No</th>
+            <th>요청일시</th>
+            <th>요청수량</th>
+            <th>메모</th>
+            <th>입고상태</th>
+            <th>입고수량</th>
+            <th colspan="3">작업</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="productLog : ${productLogList}">
         <td th:text="${productLog.no}"></td>
         <td th:text="${productLog.requestDate}"></td>
         <td th:text="${productLog.requestCount}"></td>
-        <td th:text="${productLog.memo}"></td>
-<!--        <td th:text="${productLog.stockedStatus == '}"></td>-->
+        <td><input type="text" th:id="'memo' + ${productLog.no}" th:value="${productLog.memo}" /></td>
         <td>
-            <span th:if="${productLog.stockedStatus == 'INITIAL'}">대기</span>
-            <span th:if="${productLog.stockedStatus == 'A_PART_OF_STOCKED'}">부분입고</span>
-            <span th:if="${productLog.stockedStatus == 'COMPLETE'}">완료</span>
-            <span th:if="${productLog.stockedStatus != 'INITIAL' && productLog.stockedStatus != 'A_PART_OF_STOCKED' && productLog.stockedStatus != 'COMPLETE'}">기타</span>
+            <span th:if="${productLog.stockedStatus == T(com.southouse.jasminbell.entity.StockedStatus).INITIAL}">대기</span>
+            <span th:if="${productLog.stockedStatus == T(com.southouse.jasminbell.entity.StockedStatus).A_PART_OF_STOCKED}">부분입고</span>
+            <span th:if="${productLog.stockedStatus == T(com.southouse.jasminbell.entity.StockedStatus).COMPLETE}">완료</span>
+            <span th:if="${productLog.stockedStatus != T(com.southouse.jasminbell.entity.StockedStatus).INITIAL
+            && productLog.stockedStatus != T(com.southouse.jasminbell.entity.StockedStatus).A_PART_OF_STOCKED
+            && productLog.stockedStatus != T(com.southouse.jasminbell.entity.StockedStatus).COMPLETE}">기타</span>
         </td>
-        <td th:text="${productLog.stockedCount}"></td>
-<!--        <td><a th:href="@{'/complete?code=' + ${product.code}}">완료처리</a></td>-->
-<!--        <td><a th:href="@{'/delete?code=' + ${product.code}}">삭제</a></td>-->
-        <td><button>완료처리</button></td>
-        <td><button>삭제</button></td>
+        <td><input type="text" th:id="'stockedCount' + ${productLog.no}" th:value="${productLog.stockedCount}" /></td>
+        <td><button th:onclick="updateLog([[${productLog.no}]], 'update')">업데이트</button></td>
+        <td><button th:onclick="updateLog([[${productLog.no}]], 'complete')">완료처리</button></td>
+        <td><button th:onclick="updateLog([[${productLog.no}]], 'delete')">삭제</button></td>
+    </tbody>
     </tr>
 </table>
+<footer><h1>Made by southouse</h1></footer>
 </body>
 </html>

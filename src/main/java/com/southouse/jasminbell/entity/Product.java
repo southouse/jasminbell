@@ -62,9 +62,11 @@ public class Product {
     @Column(name = "reserved_case")
     private int reservedCase;
 
+    // 입고 대기
     @Column(name = "stocked_waiting")
     private int stockedWaiting;
 
+    // 금일 입고
     @Column(name = "stocked_today")
     private int stockedToday;
 

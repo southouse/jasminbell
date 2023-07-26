@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * packageName    : com.southouse.jasminbell.service
@@ -33,28 +34,61 @@ public class ProductLogService {
     }
 
     public List<ProductLog> getProductLogsByProduct(Product product) {
-        return productLogRepository.findByProduct(product);
+        return productLogRepository.findByProductAndIsDeleteFalse(product);
     }
 
     public List<ProductLog> getProductLogsByCode(String code) {
-        return productLogRepository.findByProductCode(code);
+        return productLogRepository.findByProductCodeAndIsDeleteFalse(code);
     }
 
-    public Result completeLog(ProductLog productLog) {
+    public Result createProductLog(ProductLog productLog) {
         Result result = new Result();
 
-        if (productLog.getRequestCount() != productLog.getStockedCount()) {
-            result.setMessage("요청 수량과 입고 수량이 같아 완료 처리할 수 없습니다.");
-            return result;
-        }
-
         result.setSuccess(true);
-        productLog.setStockedStatus(StockedStatus.COMPLETE);
+        productLogRepository.save(productLog);
 
         return result;
     }
 
-    public Result deleteLog(ProductLog productLog) {
-        return new Result();
+    public Result updateLog(Long no, String memo, int stockedCount) {
+        Result result = new Result();
+
+        ProductLog productLog = productLogRepository.findByNo(no).orElseThrow(() -> new RuntimeException("로그를 찾을 수 없습니다."));
+        productLog.updateProductLog(memo, stockedCount);
+        productLogRepository.save(productLog);
+
+        result.setSuccess(true);
+
+        return result;
+    }
+
+    public Result completeLog(Long no) {
+        Result result = new Result();
+
+        ProductLog productLog = productLogRepository.findByNo(no).orElseThrow(() -> new RuntimeException("로그를 찾을 수 없습니다."));
+
+//        요청 수량과 입고 수량이 같아도 완료 처리할 수 있어야 함
+//        if (productLog.getRequestCount() != productLog.getStockedCount()) {
+//            result.setMessage("요청 수량과 입고 수량이 같아 완료 처리할 수 없습니다.");
+//            return result;
+//        }
+
+        result.setSuccess(true);
+        productLog.setStockedStatus(StockedStatus.COMPLETE);
+        productLogRepository.save(productLog);
+
+        return result;
+    }
+
+    public Result deleteLog(Long no) {
+        Result result = new Result();
+
+        ProductLog productLog = productLogRepository.findByNo(no).orElseThrow(() -> new RuntimeException("로그를 찾을 수 없습니다."));
+
+        result.setSuccess(true);
+        productLog.setDelete(true);
+        productLogRepository.save(productLog);
+
+        return result;
     }
 }

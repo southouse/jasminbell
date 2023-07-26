@@ -3,6 +3,8 @@ package com.southouse.jasminbell.repository;
 import com.southouse.jasminbell.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 /**
  * packageName    : com.southouse.jasminbell.repository
  * fileName       : ProductRepository

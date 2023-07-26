@@ -4,7 +4,9 @@ import com.southouse.jasminbell.entity.Product;
 import com.southouse.jasminbell.entity.ProductLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * packageName    : com.southouse.jasminbell.repository
@@ -19,8 +21,10 @@ import java.util.List;
  */
 public interface ProductLogRepository extends JpaRepository<ProductLog, Long> {
 
-    List<ProductLog> findByProduct(Product product);
+    List<ProductLog> findByProductAndIsDeleteFalse(Product product);
 
-    List<ProductLog> findByProductCode(String code);
+    List<ProductLog> findByProductCodeAndIsDeleteFalse(String code);
+
+    Optional<ProductLog> findByNo(Long no);
 
 }

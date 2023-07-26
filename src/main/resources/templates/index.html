@@ -4,34 +4,82 @@
   <title>Jasminbell</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
+<style>
+  table {
+    border-collapse: collapse;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    border-style: hidden;
+    margin: 25px 0;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    min-width: 1391px;
+  }
+
+  th,
+  td {
+      padding: 12px 15px;
+  }
+
+  tbody tr:hover {
+    font-weight: 600;
+    color: #3EB489;
+    cursor: pointer;
+  }
+
+  thead tr {
+    background-color: #3EB489;
+    color: #ffffff;
+    text-align: left;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+
+  tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+  }
+
+  tbody tr:last-of-type {
+    border-bottom: 2px solid #009879;
+  }
+</style>
+<script>
+  const update = (code) => {
+    window.location.href = '/detail?code=' + code
+  }
+</script>
 <body>
-<table class="tb_col" border="1">
-  <tr>
-    <th rowspan="2">No</th>
-    <th rowspan="2">공급처</th>
-    <th rowspan="2">상품코드</th>
-    <th rowspan="2">상품명</th>
-    <th rowspan="2">공급처 옵션</th>
-    <th colspan="2">현재 잔미송</th>
-    <th rowspan="2">최신화</th>
-    <th rowspan="2">수정</th>
-  </tr>
-  <tr>
-    <th>수량</th>
-    <th>건수</th>
-  </tr>
-  <tr th:each="product : ${productList}">
-    <td th:text="${product.no}"></td>
-    <td th:text="${product.supplier}"></td>
-    <td th:text="${product.code}"></td>
-    <td th:text="${product.name}"></td>
-    <td th:text="${product.supplierOption}"></td>
-    <td th:text="${product.reservedCount}"></td>
-    <td th:text="${product.reservedCase}"></td>
-    <td th:text="${product.isUpdate}"></td>
-    <td>!</td>
-    <td><a th:href="@{'/detail?code=' + ${product.code}}">수정</a></td>
-  </tr>
+<header><a href="./">HOME</a></header>
+<table class="tb_col">
+  <thead>
+    <tr>
+      <th rowspan="2">No</th>
+      <th rowspan="2">공급처</th>
+      <th rowspan="2">상품코드</th>
+      <th rowspan="2">상품명</th>
+      <th rowspan="2">공급처 옵션</th>
+      <th colspan="2">현재 잔미송</th>
+      <th rowspan="2">최신화</th>
+    </tr>
+    <tr>
+      <th>수량</th>
+      <th>건수</th>
+    </tr>
+  </thead>
+ <tbody>
+   <tr th:each="product : ${productList}" th:onclick="update([[${product.code}]])">
+     <td th:text="${product.no}"></td>
+     <td th:text="${product.supplier}"></td>
+     <td th:text="${product.code}"></td>
+     <td th:text="${product.name}"></td>
+     <td th:text="${product.supplierOption}"></td>
+     <td th:text="${product.reservedCount}"></td>
+     <td th:text="${product.reservedCase}"></td>
+     <td th:text="${product.isUpdate ? 'O' : 'X'}">O</td>
+   </tr>
+ </tbody>
 </table>
+<footer><h1>Made by southouse</h1></footer>
 </body>
 </html>
