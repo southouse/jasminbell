@@ -6,19 +6,13 @@ import com.southouse.jasminbell.repository.ExcelRepository;
 import com.southouse.jasminbell.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.InvalidPropertiesFormatException;
@@ -44,10 +38,16 @@ public class ExcelService {
     private final ProductRepository productRepository;
     private final ExcelRepository excelRepository;
 
+    public Excel getExcelByLastSync() {
+        return excelRepository.findFirst1ByOrderBySyncTimeDesc();
+    }
+
     public void uploadExcelFile(MultipartFile file) {
         List<Product> productList = new ArrayList<>();
 
         try (InputStream inputStream = file.getInputStream()) {
+            DataFormatter dataFormatter = new DataFormatter();
+
             Workbook workbook;
             if (file.getOriginalFilename().endsWith(".xls")) {
                 // OLE2 포맷인 경우
@@ -57,7 +57,7 @@ public class ExcelService {
                 workbook = new XSSFWorkbook(inputStream);
             } else {
                 // 유효하지 않은 파일 포맷인 경우
-                throw new InvalidPropertiesFormatException("");
+                throw new IllegalArgumentException("Invalid file format");
             }
 
             Sheet sheet = workbook.getSheetAt(0);
@@ -70,14 +70,15 @@ public class ExcelService {
 
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
+
                 Iterator<Cell> cellIterator = row.cellIterator();
 
-                String code = cellIterator.next().getStringCellValue();
-                String supplier = cellIterator.next().getStringCellValue();
-                String name = cellIterator.next().getStringCellValue();
-                String supplierOption = cellIterator.next().getStringCellValue();
-                int stockedWaiting = (int) cellIterator.next().getNumericCellValue(); // 입고대기
-                int stockedToday = (int) cellIterator.next().getNumericCellValue(); // 금일입고
+                String code = getStringCellValue(cellIterator.next());
+                String supplier = getStringCellValue(cellIterator.next());
+                String name = getStringCellValue(cellIterator.next());
+                String supplierOption = getStringCellValue(cellIterator.next());
+                int stockedWaiting = (int) getNumericCellValue(cellIterator.next());
+                int stockedToday = (int) getNumericCellValue(cellIterator.next());
 
                 Product productByCode = productRepository.findByCode(code);
 
@@ -120,5 +121,45 @@ public class ExcelService {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build());
+    }
+
+    private String excelTypeMapping(Cell cell) {
+
+        switch (cell.getCellType()){
+            case FORMULA:
+                return cell.getCellFormula();
+            case NUMERIC:
+                return cell.getNumericCellValue()+"";
+            case STRING:
+                return cell.getStringCellValue()+"";
+            case BOOLEAN:
+                return cell.getBooleanCellValue()+"";
+            case ERROR:
+                return cell.getErrorCellValue()+"";
+        }
+
+        return "null";
+    }
+
+    private String getStringCellValue(Cell cell) {
+        if (cell == null) {
+            return "";
+        }
+
+        if (cell.getCellType() == CellType.STRING) {
+            return cell.getStringCellValue();
+        } else if (cell.getCellType() == CellType.NUMERIC || cell.getCellType() == CellType.FORMULA) {
+            return String.valueOf((int) cell.getNumericCellValue());
+        } else {
+            return "";
+        }
+    }
+
+    private double getNumericCellValue(Cell cell) {
+        if (cell == null || cell.getCellType() != CellType.NUMERIC) {
+            return 0.0;
+        }
+
+        return cell.getNumericCellValue();
     }
 }

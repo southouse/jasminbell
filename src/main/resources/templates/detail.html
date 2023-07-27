@@ -43,6 +43,45 @@
   tbody tr:last-of-type {
     border-bottom: 2px solid #009879;
   }
+  .pagination_section {
+      position: relative;
+    }
+
+    /* pagination styling */
+    .pagination_section a {
+      color: black;
+      padding: 10px 18px;
+      text-decoration: none;
+    }
+
+    /* pagination hover effect on non-active */
+    .pagination_section a:hover:not(.active) {
+      background-color: #031F3B;
+      color: white;
+    }
+
+    /* pagination hover effect on active*/
+
+    a:nth-child(5) {
+      background-color: green;
+      color: white;
+    }
+
+    a:nth-child(1) {
+      font-weight: bold;
+    }
+
+    a:nth-child(7) {
+      font-weight: bold;
+    }
+
+    .content {
+      margin: 50px;
+      padding: 15px;
+      width: 700px;
+      height: 200px;
+      border: 2px solid black;
+    }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- JavaScript -->
@@ -123,6 +162,9 @@
     }
 
     $(document).ready(function() {
+        $('#complete-row').css('backgroundColor', '#b5e0d1');
+        $('#complete-row > td > input').attr("disabled", true);
+
         // Hide the sections initially based on the default selected value
         showHideFormSections();
 
@@ -149,7 +191,7 @@ function showHideFormSections() {
 </script>
 
 <body>
-<header><a href="./">HOME</a></br></header>
+<header><a href="./?page=0&size=30&sort=supplier,name,supplierOption,asc">HOME</a></br></header>
 <h1><span th:text="${product.code}"></span> | <span th:text="${product.name}"></span></h1>
 <hr style="border: 2px solid #000">
 최신화 : <span th:text="${product.isUpdate ? 'O' : 'X'}">O</span><br/>
@@ -172,7 +214,7 @@ function showHideFormSections() {
             <input type="date" id="date" name="date" required>
 
             <label for="memo">메모:</label>
-            <input type="text" id="memo" name="memo" th:field="*{memo}" required>
+            <input type="text" id="memo" name="memo" th:field="*{memo}">
 
             <label for="requestCount">수량:</label>
             <input type="number" id="requestCount" th:field="*{requestCount}" name="requestCount" required>
@@ -208,26 +250,47 @@ function showHideFormSections() {
         </tr>
     </thead>
     <tbody>
-        <tr th:each="productLog : ${productLogList}">
-        <td th:text="${productLog.no}"></td>
-        <td th:text="${productLog.requestDate}"></td>
-        <td th:text="${productLog.requestCount}"></td>
-        <td><input type="text" th:id="'memo' + ${productLog.no}" th:value="${productLog.memo}" /></td>
-        <td>
-            <span th:if="${productLog.stockedStatus == T(com.southouse.jasminbell.entity.StockedStatus).INITIAL}">대기</span>
-            <span th:if="${productLog.stockedStatus == T(com.southouse.jasminbell.entity.StockedStatus).A_PART_OF_STOCKED}">부분입고</span>
-            <span th:if="${productLog.stockedStatus == T(com.southouse.jasminbell.entity.StockedStatus).COMPLETE}">완료</span>
-            <span th:if="${productLog.stockedStatus != T(com.southouse.jasminbell.entity.StockedStatus).INITIAL
-            && productLog.stockedStatus != T(com.southouse.jasminbell.entity.StockedStatus).A_PART_OF_STOCKED
-            && productLog.stockedStatus != T(com.southouse.jasminbell.entity.StockedStatus).COMPLETE}">기타</span>
-        </td>
-        <td><input type="text" th:id="'stockedCount' + ${productLog.no}" th:value="${productLog.stockedCount}" /></td>
-        <td><button th:onclick="updateLog([[${productLog.no}]], 'update')">업데이트</button></td>
-        <td><button th:onclick="updateLog([[${productLog.no}]], 'complete')">완료처리</button></td>
-        <td><button th:onclick="updateLog([[${productLog.no}]], 'delete')">삭제</button></td>
+        <tr th:each="productLog : ${productLogList}" th:id="${productLog.stockedStatus == T(com.southouse.jasminbell.entity.StockedStatus).COMPLETE} ? 'complete-row' : ''">
+            <td th:text="${productLog.no}"></td>
+            <td th:text="${productLog.requestDate}"></td>
+            <td th:text="${productLog.requestCount}"></td>
+            <td><input type="text" th:id="'memo' + ${productLog.no}" th:value="${productLog.memo}" /></td>
+            <td>
+                <span th:if="${productLog.stockedStatus == T(com.southouse.jasminbell.entity.StockedStatus).INITIAL}">대기</span>
+                <span th:if="${productLog.stockedStatus == T(com.southouse.jasminbell.entity.StockedStatus).A_PART_OF_STOCKED}">부분입고</span>
+                <span th:if="${productLog.stockedStatus == T(com.southouse.jasminbell.entity.StockedStatus).COMPLETE}">완료</span>
+                <span th:if="${productLog.stockedStatus != T(com.southouse.jasminbell.entity.StockedStatus).INITIAL
+                && productLog.stockedStatus != T(com.southouse.jasminbell.entity.StockedStatus).A_PART_OF_STOCKED
+                && productLog.stockedStatus != T(com.southouse.jasminbell.entity.StockedStatus).COMPLETE}">기타</span>
+            </td>
+            <td><input type="text" th:id="'stockedCount' + ${productLog.no}" th:value="${productLog.stockedCount}" /></td>
+            <td><button th:onclick="updateLog([[${productLog.no}]], 'update')">업데이트</button></td>
+            <td><button th:onclick="updateLog([[${productLog.no}]], 'complete')">완료처리</button></td>
+            <td><button th:onclick="updateLog([[${productLog.no}]], 'delete')">삭제</button></td>
+        </tr>
     </tbody>
-    </tr>
 </table>
+
+<div class="pagination_section" th:if="${!#lists.isEmpty(productLogList.content)}">
+
+    <!-- 이전 페이지로 이동하는 화살표 버튼 -->
+
+    <a th:if="${currentPage > 0}" th:href="@{/detail(code=${product.code},page=0,size=30,sort=${#strings.replace('requestDate,asc', ',', ',')})}">&lt;&lt;</a>
+
+
+    <!-- 페이지 번호 버튼 -->
+    <span th:each="pageNum : ${#numbers.sequence(0, totalPage - 1)}">
+        <a th:if="${pageNum != currentPage}" th:href="@{/detail(code=${product.code},page=${pageNum},size=30,sort=${#strings.replace('requestDate,asc', ',', ',')})}" th:text="${pageNum + 1}"></a>
+        <span th:if="${pageNum == currentPage}" th:text="${pageNum + 1}"></span>
+    </span>
+
+
+    <!-- 다음 페이지로 이동하는 화살표 버튼 -->
+
+    <a th:if="${currentPage < totalPage - 1}" th:href="@{/detail(code=${product.code},page=${totalPage - 1},size=30,sort=${#strings.replace('requestDate,asc', ',', ',')})}">&gt;&gt;</a>
+
+</div>
+
 <footer><h1>Made by southouse</h1></footer>
 </body>
 </html>

@@ -3,6 +3,8 @@ package com.southouse.jasminbell.service;
 import com.southouse.jasminbell.entity.Product;
 import com.southouse.jasminbell.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,6 +30,31 @@ public class ProductService {
     public List<Product> getProducts() {
         return productRepository.findAll();
     }
+
+    public Page<Product> getProducts(Pageable pageable) {
+        return productRepository.findAll(pageable);
+    }
+
+    public Page<Product> getProducts(String searchKeyWord, Pageable pageable) {
+        return productRepository.findByNameContaining(searchKeyWord, pageable);
+    }
+
+    public Page<Product> getProductsByNeedUpdate(Pageable pageable) {
+        return productRepository.findAllByIsUpdateFalse(pageable);
+    }
+
+    public Page<Product> getProductsByNeedUpdate(String searchKeyWord, Pageable pageable) {
+        return productRepository.findAllByNameContainingAndIsUpdateFalse(searchKeyWord, pageable);
+    }
+
+    public Page<Product> getProductsByReserved(Pageable pageable, int reservedCount, int reservedCase) {
+        return productRepository.findAllByReservedCountGreaterThanOrReservedCaseGreaterThan(pageable, reservedCount, reservedCase);
+    }
+
+    public Page<Product> getProductsByReserved(Pageable pageable, int reservedCount, int reservedCase, String searchKeyWord) {
+        return productRepository.findAllByReservedCountGreaterThanOrReservedCaseGreaterThanAndNameContaining(pageable, reservedCount, reservedCase, searchKeyWord);
+    }
+
     public Product getProduct(String code) {
         return productRepository.findByCode(code);
     }

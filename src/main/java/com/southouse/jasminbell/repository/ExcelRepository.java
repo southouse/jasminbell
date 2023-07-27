@@ -16,4 +16,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * 2023/07/24        southouse       최초 생성
  */
 public interface ExcelRepository extends JpaRepository<Excel, Long> {
+
+    Excel findFirst1ByOrderBySyncTimeDesc();
+
 }

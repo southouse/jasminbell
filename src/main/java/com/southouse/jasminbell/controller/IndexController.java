@@ -1,12 +1,18 @@
 package com.southouse.jasminbell.controller;
 
 import com.southouse.jasminbell.dto.Result;
+import com.southouse.jasminbell.entity.Excel;
 import com.southouse.jasminbell.entity.Product;
 import com.southouse.jasminbell.entity.ProductLog;
 import com.southouse.jasminbell.entity.StockedStatus;
+import com.southouse.jasminbell.service.ExcelService;
 import com.southouse.jasminbell.service.ProductLogService;
 import com.southouse.jasminbell.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -35,44 +41,47 @@ public class IndexController {
 
     private final ProductService productService;
     private final ProductLogService productLogService;
+    private final ExcelService excelService;
 
     @GetMapping
-    public String index(Model model) {
-        List<Product> products = productService.getProducts();
+    public String index(Model model, @RequestParam(required = false) String searchKeyWord, Pageable pageable) {
+        Page<Product> products;
+        Page<Product> productsByNeedUpdate;
+        Page<Product> productsByReserved;
 
-        for (Product product : products) {
-            int reservedCount = 0;
-            int reservedCase = 0;
-
-            List<ProductLog> productLogsByCode = productLogService.getProductLogsByProduct(product);
-
-            for (ProductLog productLog : productLogsByCode) {
-                reservedCount += productLog.getReservedCount();
-                reservedCase += productLog.getReservedCase();
-            }
-
-            product.setReservedCount(reservedCount);
-            product.setReservedCase(reservedCase);
-
-            if (product.getReservedCount() == product.getStockedWaiting())
-                product.setIsUpdate(true);
+        if (searchKeyWord != null) {
+            products = productService.getProducts(searchKeyWord, pageable);
+            productsByNeedUpdate = productService.getProductsByNeedUpdate(searchKeyWord, pageable);
+            productsByReserved = productService.getProductsByReserved(pageable, 0, 0, searchKeyWord);
+        } else {
+            products = productService.getProducts(pageable);
+            productsByNeedUpdate = productService.getProductsByNeedUpdate(pageable);
+            productsByReserved = productService.getProductsByReserved(pageable, 0, 0);
         }
 
-        productService.save(products);
+        Excel excel = excelService.getExcelByLastSync();
 
+        model.addAttribute("excel", excel);
         model.addAttribute("productList", products);
+        model.addAttribute("productListByNeedUpdate", productsByNeedUpdate);
+        model.addAttribute("productListByReserved", productsByReserved);
+        model.addAttribute("currentPage", products.getNumber());
+        model.addAttribute("totalPage", products.getTotalPages());
         return "index";
     }
 
     @GetMapping("detail")
-    public String detail(@RequestParam String code, Model model) {
-        List<ProductLog> productLogs = productLogService.getProductLogsByCode(code);
+    public String detail(@RequestParam String code, Model model, Pageable pageable) {
+        Page<ProductLog> productLogs = productLogService.getProductLogsByCode(code, pageable);
 
         Product product = productService.getProduct(code);
 
         model.addAttribute("createProductLog", new ProductLog());
         model.addAttribute("product", product);
         model.addAttribute("productLogList", productLogs);
+        model.addAttribute("currentPage", productLogs.getNumber());
+        model.addAttribute("totalPage", productLogs.getTotalPages());
+        model.addAttribute("totalElements", productLogs.getTotalElements());
 
         return "detail";
     }
@@ -93,7 +102,7 @@ public class IndexController {
         model.addAttribute("createProductLog", createProductLog);
         model.addAttribute("date", date);
 
-        return "redirect:/detail?code=" + createProductLog.getProduct().getCode();
+        return "redirect:/detail?code=" + createProductLog.getProduct().getCode() + "&page=0&size=30&sort=requestDate,asc";
     }
 
     @PutMapping("log/update")

@@ -2,6 +2,8 @@ package com.southouse.jasminbell.repository;
 
 import com.southouse.jasminbell.entity.Product;
 import com.southouse.jasminbell.entity.ProductLog;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import javax.swing.text.html.Option;
@@ -23,7 +25,7 @@ public interface ProductLogRepository extends JpaRepository<ProductLog, Long> {
 
     List<ProductLog> findByProductAndIsDeleteFalse(Product product);
 
-    List<ProductLog> findByProductCodeAndIsDeleteFalse(String code);
+    Page<ProductLog> findByProductCodeAndIsDeleteFalse(String code, Pageable pageable);
 
     Optional<ProductLog> findByNo(Long no);
 

@@ -6,6 +6,8 @@ import com.southouse.jasminbell.entity.ProductLog;
 import com.southouse.jasminbell.entity.StockedStatus;
 import com.southouse.jasminbell.repository.ProductLogRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,8 +39,8 @@ public class ProductLogService {
         return productLogRepository.findByProductAndIsDeleteFalse(product);
     }
 
-    public List<ProductLog> getProductLogsByCode(String code) {
-        return productLogRepository.findByProductCodeAndIsDeleteFalse(code);
+    public Page<ProductLog> getProductLogsByCode(String code, Pageable pageable) {
+        return productLogRepository.findByProductCodeAndIsDeleteFalse(code, pageable);
     }
 
     public Result createProductLog(ProductLog productLog) {
@@ -55,6 +57,14 @@ public class ProductLogService {
 
         ProductLog productLog = productLogRepository.findByNo(no).orElseThrow(() -> new RuntimeException("로그를 찾을 수 없습니다."));
         productLog.updateProductLog(memo, stockedCount);
+
+        if (productLog.getRequestCount() <= productLog.getStockedCount())
+            productLog.setStockedStatus(StockedStatus.COMPLETE);
+        else if (productLog.getStockedCount() > 0)
+            productLog.setStockedStatus(StockedStatus.A_PART_OF_STOCKED);
+        else if (productLog.getStockedCount() == 0)
+            productLog.setStockedStatus(StockedStatus.INITIAL);
+
         productLogRepository.save(productLog);
 
         result.setSuccess(true);
