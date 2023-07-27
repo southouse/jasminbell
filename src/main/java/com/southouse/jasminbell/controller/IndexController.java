@@ -44,20 +44,17 @@ public class IndexController {
     private final ExcelService excelService;
 
     @GetMapping
-    public String index(Model model, @RequestParam(required = false) String searchKeyWord, Pageable pageable) {
+    public String index(Model model
+            , @RequestParam(required = false) String name
+            , @RequestParam(required = false) String supplierOption
+            , Pageable pageable) {
         Page<Product> products;
         Page<Product> productsByNeedUpdate;
         Page<Product> productsByReserved;
 
-        if (searchKeyWord != null) {
-            products = productService.getProducts(searchKeyWord, pageable);
-            productsByNeedUpdate = productService.getProductsByNeedUpdate(searchKeyWord, pageable);
-            productsByReserved = productService.getProductsByReserved(pageable, 0, 0, searchKeyWord);
-        } else {
-            products = productService.getProducts(pageable);
-            productsByNeedUpdate = productService.getProductsByNeedUpdate(pageable);
-            productsByReserved = productService.getProductsByReserved(pageable, 0, 0);
-        }
+        products = productService.getProducts(name, supplierOption, pageable);
+        productsByNeedUpdate = productService.getProductsByNeedUpdate(name, supplierOption, pageable);
+        productsByReserved = productService.getProductsByReserved(name, supplierOption, pageable);
 
         Excel excel = excelService.getExcelByLastSync();
 

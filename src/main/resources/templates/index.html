@@ -139,22 +139,15 @@ function setCookie(cookie_name, value, days) {
 
   var value = getCookie("filter");
 
-  $('#default_table').hide();
-  $('#update_table').hide();
-  $('#reserved_table').hide();
-
   // 그 전에 ID를 저장해서 처음 페이지 로딩 시, 입력 칸에 저장된 ID가 표시된 상태라면,
   if(value === 'need_update'){
     $("#need_update").attr("checked", true);
-    $("#update_table").show();
     pagination(0);
   } else if (value === 'now_reserved') {
     $("#now_reserved").attr("checked", true);
-    $("#reserved_table").show();
     pagination(0);
   } else {
     $("#default").attr("checked", true);
-    $("#default_table").show();
     pagination(0);
   }
 }
@@ -194,6 +187,56 @@ function setCookie(cookie_name, value, days) {
           }
       });
   }
+
+  function search() {
+    var selectedValue = document.getElementById("searchType").value;
+    var searchText = document.getElementById("search").value;
+
+    // 현재 URL 가져오기
+    var currentUrl = new URL(window.location.href);
+
+    // page 파라미터를 0으로 설정
+    currentUrl.searchParams.set("page", 0);
+
+    // 파라미터가 이미 있는지 확인
+    var searchParams = new URLSearchParams(currentUrl.search);
+
+    // 기존의 name 파라미터가 있는지 확인
+    var nameParam = searchParams.get("name");
+    // 기존의 supplierOption 파라미터가 있는지 확인
+    var supplierOptionParam = searchParams.get("supplierOption");
+
+    // 파라미터 설정 또는 삭제
+    if (selectedValue === "name") {
+      // name 파라미터 설정
+      if (searchText.trim() !== "") {
+        searchParams.set("name", searchText);
+      } else {
+        searchParams.delete("name");
+      }
+      // 기존의 supplier 파라미터 삭제
+      if (supplierOptionParam) {
+        searchParams.delete("supplierOption");
+      }
+    } else if (selectedValue === "supplierOption") {
+      // supplier 파라미터 설정
+      if (searchText.trim() !== "") {
+        searchParams.set("supplierOption", searchText);
+      } else {
+        searchParams.delete("supplierOption");
+      }
+      // 기존의 name 파라미터 삭제
+      if (nameParam) {
+        searchParams.delete("name");
+      }
+    }
+
+    // 변경된 파라미터로 새로운 URL 생성
+    currentUrl.search = searchParams.toString();
+
+    // 새로운 URL로 이동 (페이지 새로고침)
+    window.location.href = currentUrl.toString();
+  }
 </script>
 <body>
 <header>
@@ -209,12 +252,12 @@ function setCookie(cookie_name, value, days) {
     <button type="submit" onclick="uploadFile()">업로드</button>
 
   <hr>
-  <select>
-    <option>이름</option>
-    <option>공급처</option>
+  <select id="searchType">
+    <option value="name">이름</option>
+    <option value="supplierOption">옵션</option>
   </select>
   <input type="text" id="search" name="search" />
-  <button type="submit">검색</button>
+  <button type="submit" onclick="search()">검색</button>
 
 </header>
 <div id="default_table">

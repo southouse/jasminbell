@@ -20,12 +20,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Page<Product> findAll(Pageable pageable);
     Page<Product> findAllByIsUpdateFalse(Pageable pageable);
-    Page<Product> findAllByNameContainingAndIsUpdateFalse(String searchKeyWord, Pageable pageable);
+    Page<Product> findAllByNameContainingAndIsUpdateFalse(String name, Pageable pageable);
+    Page<Product> findAllBySupplierOptionContainingAndIsUpdateFalse(String supplierOption, Pageable pageable);
     Page<Product> findAllByReservedCountGreaterThanOrReservedCaseGreaterThan(Pageable pageable, int reservedCount, int reservedCase);
-    Page<Product> findAllByReservedCountGreaterThanOrReservedCaseGreaterThanAndNameContaining(Pageable pageable, int reservedCount, int reservedCase, String searchKeyWord);
+    Page<Product> findAllByReservedCountGreaterThanOrReservedCaseGreaterThanAndNameContaining(Pageable pageable, int reservedCount, int reservedCase, String name);
+    Page<Product> findAllByReservedCountGreaterThanOrReservedCaseGreaterThanAndSupplierOptionContaining(Pageable pageable, int reservedCount, int reservedCase, String supplierOption);
 
-    Page<Product> findByNameContaining(String searchKeyword, Pageable pageable);
-//    Page<Product> findByTitleContaining(String searchKeyword);
+    Page<Product> findByNameContaining(String name, Pageable pageable);
+    Page<Product> findBySupplierOptionContaining(String supplierOption, Pageable pageable);
 
     Product findByCode(String code);
 

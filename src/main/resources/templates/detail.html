@@ -162,8 +162,8 @@
     }
 
     $(document).ready(function() {
-        $('#complete-row').css('backgroundColor', '#b5e0d1');
-        $('#complete-row > td > input').attr("disabled", true);
+        $('.complete-row').css('backgroundColor', '#b5e0d1');
+<!--        $('#complete-row > td > input').attr("disabled", true);-->
 
         // Hide the sections initially based on the default selected value
         showHideFormSections();
@@ -250,7 +250,7 @@ function showHideFormSections() {
         </tr>
     </thead>
     <tbody>
-        <tr th:each="productLog : ${productLogList}" th:id="${productLog.stockedStatus == T(com.southouse.jasminbell.entity.StockedStatus).COMPLETE} ? 'complete-row' : ''">
+        <tr th:each="productLog : ${productLogList}" th:class="${productLog.stockedStatus == T(com.southouse.jasminbell.entity.StockedStatus).COMPLETE} ? 'complete-row' : ''">
             <td th:text="${productLog.no}"></td>
             <td th:text="${productLog.requestDate}"></td>
             <td th:text="${productLog.requestCount}"></td>

@@ -1,6 +1,7 @@
 package com.southouse.jasminbell.service;
 
 import com.southouse.jasminbell.entity.Product;
+import com.southouse.jasminbell.entity.ProductLog;
 import com.southouse.jasminbell.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,34 +26,49 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductService {
 
+    private final ProductLogService productLogService;
     private final ProductRepository productRepository;
 
-    public List<Product> getProducts() {
-        return productRepository.findAll();
+    public Page<Product> getProducts(String name, String supplierOption, Pageable pageable) {
+        Page<Product> products = productRepository.findAll(pageable);
+
+        // 상품 로그에서 현재 잔미송 체크 후 저장
+        this.reservedSaveFromLog(products.getContent());
+
+        if (name != null)
+            products = productRepository.findByNameContaining(name, pageable);
+        else if (supplierOption != null)
+            products = productRepository.findBySupplierOptionContaining(supplierOption, pageable);
+
+        return products;
     }
 
-    public Page<Product> getProducts(Pageable pageable) {
-        return productRepository.findAll(pageable);
+    public Page<Product> getProductsByNeedUpdate(String name, String supplierOption, Pageable pageable) {
+        Page<Product> products = productRepository.findAllByIsUpdateFalse(pageable);
+
+        // 상품 로그에서 현재 잔미송 체크 후 저장
+        this.reservedSaveFromLog(products.getContent());
+
+        if (name != null)
+            products = productRepository.findAllByNameContainingAndIsUpdateFalse(name, pageable);
+        else if (supplierOption != null)
+            products = productRepository.findAllBySupplierOptionContainingAndIsUpdateFalse(name, pageable);
+
+        return products;
     }
 
-    public Page<Product> getProducts(String searchKeyWord, Pageable pageable) {
-        return productRepository.findByNameContaining(searchKeyWord, pageable);
-    }
+    public Page<Product> getProductsByReserved(String name, String supplierOption, Pageable pageable) {
+        Page<Product> products = productRepository.findAllByReservedCountGreaterThanOrReservedCaseGreaterThan(pageable, 0, 0);
 
-    public Page<Product> getProductsByNeedUpdate(Pageable pageable) {
-        return productRepository.findAllByIsUpdateFalse(pageable);
-    }
+        // 상품 로그에서 현재 잔미송 체크 후 저장
+        this.reservedSaveFromLog(products.getContent());
 
-    public Page<Product> getProductsByNeedUpdate(String searchKeyWord, Pageable pageable) {
-        return productRepository.findAllByNameContainingAndIsUpdateFalse(searchKeyWord, pageable);
-    }
+        if (name != null)
+            products = productRepository.findAllByReservedCountGreaterThanOrReservedCaseGreaterThanAndNameContaining(pageable, 0, 0, name);
+        else if (supplierOption != null)
+            products = productRepository.findAllByReservedCountGreaterThanOrReservedCaseGreaterThanAndSupplierOptionContaining(pageable, 0, 0, supplierOption);
 
-    public Page<Product> getProductsByReserved(Pageable pageable, int reservedCount, int reservedCase) {
-        return productRepository.findAllByReservedCountGreaterThanOrReservedCaseGreaterThan(pageable, reservedCount, reservedCase);
-    }
-
-    public Page<Product> getProductsByReserved(Pageable pageable, int reservedCount, int reservedCase, String searchKeyWord) {
-        return productRepository.findAllByReservedCountGreaterThanOrReservedCaseGreaterThanAndNameContaining(pageable, reservedCount, reservedCase, searchKeyWord);
+        return products;
     }
 
     public Product getProduct(String code) {
@@ -63,7 +79,25 @@ public class ProductService {
         productRepository.save(product);
     }
 
-    public void save(List<Product> products) {
+    public void reservedSaveFromLog(List<Product> products) {
+        for (Product product : products) {
+            int reservedCount = 0;
+            int reservedCase = 0;
+
+            List<ProductLog> productLogsByCode = productLogService.getProductLogsByProduct(product);
+
+            for (ProductLog productLog : productLogsByCode) {
+                reservedCount += productLog.getReservedCount();
+                reservedCase += productLog.getReservedCase();
+            }
+
+            product.setReservedCount(reservedCount);
+            product.setReservedCase(reservedCase);
+
+            if (product.getReservedCount() == product.getStockedWaiting())
+                product.setIsUpdate(true);
+        }
+
         productRepository.saveAll(products);
     }
 
