@@ -241,7 +241,14 @@ function setCookie(cookie_name, value, days) {
 <body>
 <header>
   <a href="./?page=0&size=30&sort=supplier,name,supplierOption,asc">HOME</a>
-  <h3>데이터 연동 일시 : <span th:text="${excel.syncTime}"></span></h3>
+
+  <div th:if="${excel != null}">
+    <h3>데이터 연동 일시: <span th:utext="${excel.syncTime != null ? excel.syncTime : '없음'}"></span></h3>
+  </div>
+
+  <div th:if="${excel == null}">
+    <h3>데이터 연동 일시: <span>연동되지 않음</span></h3>
+  </div>
 
   <input type="radio" id="default" name="filter" onclick="setCookie('filter', '', 1)">기본
   <input type="radio" id="need_update" name="filter" onclick="setCookie('filter', 'need_update', 1)">최신화 필요만 조회

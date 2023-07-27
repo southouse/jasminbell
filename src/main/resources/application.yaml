@@ -1,10 +1,11 @@
 spring:
+  config:
+    activate:
+      on-profile: local
   servlet:
     multipart:
-      max-file-size: 1MB # 최대 파일 크기 설정
-      max-request-size: 10MB # 요청당 최대 크기 설정
-  profiles:
-    active: local
+      max-file-size: 100MB # 최대 파일 크기 설정
+      max-request-size: 100MB # 요청당 최대 크기 설정
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:9998/jasminbell?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
@@ -24,3 +25,28 @@ spring:
 logging:
   level:
     org.hibernate.SQL: debug
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/jasminbell?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: Aa135246@#
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+      use-new-id-generator-mappings: false
+    show-sql: true
+    properties:
+      hibernate.format_sql: true
+      dialect: org.hibernate.dialect.MySQL8InnoDBDialect
+  logging:
+    level:
+      org.hibernate.SQL: debug
